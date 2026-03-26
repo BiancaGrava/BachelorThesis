@@ -1,0 +1,148 @@
+debug: false
+
+project:
+  country: "RO"
+  nuts_level: 3
+  nuts_gpkg_path: "data/nuts3_ro.gpkg"
+  nuts_layer: null
+  crs_area_distance: "EPSG:3035"    # good for meters-based distance calculations
+
+run:
+  top_n: 8
+  extra_nn: 6
+  output_csv: "outputs/ranked_counties.csv"
+  output_json: "outputs/ranked_counties.json"
+  cache_dir: ".cache"
+  pvgis_cache_file: "pvgis_cache.json"
+  request_sleep_s: 0.08
+
+xpv:
+  requested_area_ha: 60   # XPV in hectares, must be 2..100
+
+pv_model:
+  provider: "PVGIS"
+  api_base: "https://re.jrc.ec.europa.eu/api/v5_3"   # PVGIS v5.3 API base format [1](https://en.wikipedia.org/wiki/NUTS_statistical_regions_of_Romania)
+  on_fail: "fallback"        # "fallback" or "skip"
+  fallback_Ey_kWh_per_kWp: 1300
+  system:
+    loss_percent: 14
+    tilt_deg: 35
+    azimuth_deg: 0
+    pvtechchoice: "crystSi"
+    mountingplace: "free"
+  series:
+    enabled: true
+    startyear: 2020
+    endyear: 2025
+    components: 0
+    usehorizon: 1
+    prefer_seriescalc_annual: true
+
+panel:
+  p_stc_kwp: 0.45
+  length_m: 2.10
+  width_m: 1.05
+  ground_coverage_ratio: 0.45
+
+constraints:
+  land_fit_required: true
+  grid:
+    require_grid: true
+    nearest_substation_max_km: 15
+    min_substations_within_radius: 3
+    radius_km: 25
+
+grid_proxy:
+  substations_geojson: null
+  substations_glob: "data/earth_data/out/*substation*.geojson"
+
+# Mock CORINE-like available PV-suitable land (ha) per NUTS-3 code.
+# Romania has 42 NUTS-3 units (counties + Bucharest). [6](https://osgav.run/lab/dataset-global-powerplants.html)[7](https://www.mathsisfun.com/definitions/hectare-ha-.html)
+counties:
+  RO111: { name: "Bihor",            available_ha: 12500 }
+  RO112: { name: "Bistrița-Năsăud",  available_ha: 10800 }
+  RO113: { name: "Cluj",             available_ha: 10200 }
+  RO114: { name: "Maramureș",        available_ha:  7600 }
+  RO115: { name: "Satu Mare",        available_ha:  9800 }
+  RO116: { name: "Sălaj",            available_ha:  7200 }
+
+  RO121: { name: "Alba",             available_ha:  9400 }
+  RO122: { name: "Brașov",           available_ha:  5200 }
+  RO123: { name: "Covasna",          available_ha:  4800 }
+  RO124: { name: "Harghita",         available_ha:  4100 }
+  RO125: { name: "Mureș",            available_ha:  8800 }
+  RO126: { name: "Sibiu",            available_ha:  6600 }
+
+  RO211: { name: "Bacău",            available_ha:  9200 }
+  RO212: { name: "Botoșani",         available_ha: 10500 }
+  RO213: { name: "Iași",             available_ha:  8700 }
+  RO214: { name: "Neamț",            available_ha:  5800 }
+  RO215: { name: "Suceava",          available_ha:  6900 }
+  RO216: { name: "Vaslui",           available_ha: 11200 }
+
+  RO221: { name: "Brăila",           available_ha:  9900 }
+  RO222: { name: "Buzău",            available_ha:  9100 }
+  RO223: { name: "Constanța",        available_ha: 15000 }
+  RO224: { name: "Galați",           available_ha:  8700 }
+  RO225: { name: "Tulcea",           available_ha:  8200 }
+  RO226: { name: "Vrancea",          available_ha:  6400 }
+
+  RO311: { name: "Argeș",            available_ha:  7600 }
+  RO312: { name: "Călărași",         available_ha: 14000 }
+  RO313: { name: "Dâmbovița",        available_ha:  5400 }
+  RO314: { name: "Giurgiu",          available_ha: 13500 }
+  RO315: { name: "Ialomița",         available_ha: 14500 }
+  RO316: { name: "Prahova",          available_ha:  4900 }
+  RO317: { name: "Teleorman",        available_ha: 16000 }
+
+  RO321: { name: "București",        available_ha:   600 }
+  RO322: { name: "Ilfov",            available_ha:  4200 }
+
+  RO411: { name: "Dolj",             available_ha: 15000 }
+  RO412: { name: "Gorj",             available_ha:  6200 }
+  RO413: { name: "Mehedinți",        available_ha:  7200 }
+  RO414: { name: "Olt",              available_ha: 15500 }
+  RO415: { name: "Vâlcea",           available_ha:  5300 }
+
+  RO421: { name: "Arad",             available_ha: 14500 }
+  RO422: { name: "Caraș-Severin",    available_ha:  6800 }
+  RO423: { name: "Hunedoara",        available_ha:  6100 }
+  RO424: { name: "Timiș",            available_ha: 17000 }
+
+corine:
+  raster_path: "data/corine/U2018_CLC2018_V2020_20u1.tif"
+
+  # Which CORINE Level-3 class codes you consider PV-suitable.
+  # Start conservative (mostly agriculture + grassland).
+  # Codes are standard CORINE nomenclature values (e.g., 211 = non-irrigated arable land). [3](https://land.copernicus.eu/content/corine-land-cover-nomenclature-guidelines/html/)[4](https://www.statistiques.developpement-durable.gouv.fr/media/2458/download?inline)
+  allowed_codes: [ 211, 212, 213, 231, 241, 242, 243, 244, 321, 333 ]
+
+land:
+  available_land_csv: "outputs/available_land_by_nuts3.csv"
+
+features:
+  cloud_csv: "data/features/cloud_by_county.csv"
+  albedo_csv: "data/features/albedo_by_county.csv"
+
+surrogate:
+  enabled: true
+  model_path: "models/surrogate.pkl"
+  mode: "correction_factor"   # or "direct"
+  fallback_correction: 1.0    # if model/features missing
+
+features_build:
+  cloud_tif_dir: "data/modis_cloud_tif"
+  albedo_tif_dir: "data/ltdr_albedo_tif"
+  years: [2022, 2023, 2024, 2025]
+
+
+surrogate_teacher:
+  enabled: true
+  k_points_per_county: 6
+  seed: 42
+  out_training_csv: "outputs/pvgis_teacher_training.csv"
+  out_county_targets_csv: "outputs/pvgis_county_mean_targets.csv"
+  model_out: "models/pvgis_surrogate.joblib"
+  mode: "factor"
+  min_points_ok: 3
+
