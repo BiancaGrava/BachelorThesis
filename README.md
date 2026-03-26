@@ -1,6 +1,8 @@
 # BachelorThesis
 REgional SOLutions - optimizing regional position based on solar forecasting
-Methodology: Data, Acquisition, Preprocessing, Experiments, and Validation
+
+
+*Methodology: Data, Acquisition, Preprocessing, Experiments, and Validation*
 1. Data sources and what each contributes
 1.1 PVGIS (Photovoltaic Geographical Information System) – baseline PV yield (teacher & baseline)
 PVGIS provides solar radiation and PV system performance estimates for any location, accessible through a non interactive API with tool endpoints such as PVcalc, seriescalc, and tmy. 
